@@ -1,5 +1,5 @@
 const express = require('express'); // we require the express package
-
+const connection = require('./conf')
 const app = express(); // we store it in a variable named app, all methods coming from express
 const cors = require('cors'); // we require the Cors package
 const port = 5000; // we set our backend port so our server will be at localhost:5000
@@ -11,31 +11,14 @@ app.use(express.json());
 // we use cors package, by default, it will allow all upcoming request to avoid any cors policy
 app.use(cors());
 
-
-
-// simulation of a DB
-const students = [
-  {
-    name: 'Marc',
-    age: 20
-  },
-  {
-    name: 'Dean',
-    age: 23
-  },
-  {
-    name: 'Ioan',
-    age: 21
-  },
-  {
-    name: 'Naomi',
-    age: 34
-  },
-  {
-    name: 'Teiko',
-    age: 3434
+// connection to the DB
+connection.connect(function (err) {
+  if(err) {
+    console.error('error trying to connect to the DB. Error: ' + err.stack);
+    return;
   }
-]
+  console.log('Succesfuly connected to the DB with the ID: ' + connection.threadId)
+})
 
 
 
@@ -46,20 +29,34 @@ app.get('/', (req, res) => {
 
 // on localhost:5000/students we will send, as a json, the whole students object
 app.get('/students', (req,res) => {
-  res.json(students)
+
+  // Connect to the DB, do a query to get everybody and send it to the FE
+  connection.query('SELECT * FROM students', (err, results) => {
+    if(err) {
+      res.status(500).send('Server error, could not fetch students')
+    } else {
+      res.json(results)
+    }
+  })
+
 })
 
 // we can use the same /students endpoint, to do handle all the POST requests
 app.post('/students', (req, res) => {
   // just store what's coming from the body of the request in a variable to be easy reusable
   let student = {
-    name: req.body.name,
+    user: req.body.name,
     age: req.body.age
   }
-  // simulate adding it to a database
-  students.push(student)
-  // sends a 200 code status to the FE
-  res.sendStatus(200)
+  // connection to the DB, we will insert into students whatever is coming in the student object we've just created
+  // the SET method will add in our table all the fields related to that object
+  connection.query('INSERT INTO students SET ?', student, (err) => {
+    if(err) {
+      res.status(500).send('Error, your post request did not succeed')
+    } else {
+      res.sendStatus(200)
+    }
+  })
 })
 
 
