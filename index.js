@@ -2,7 +2,7 @@ const express = require("express"); // we require the express package
 const connection = require("./conf");
 const app = express(); // we store it in a variable named app, all methods coming from express
 const cors = require("cors"); // we require the Cors package
-const port = 6000; // we set our backend port so our server will be at localhost:5000
+const port = 5000; // we set our backend port so our server will be at localhost:5000
 
 // we need to tell our server to accept and be ok with strings coming as request and convert it to JSON objects
 app.use(express.urlencoded({ extended: false }));
